@@ -1,0 +1,71 @@
+{
+  "title": "Deep Space",
+  "children": [
+    {
+      "title": "Idea",
+      "lines": [
+        "A convolution space",
+        "(synthetic stereo IR)",
+        "feeding a long late",
+        "reverb (16-line FDN).",
+        "Made for huge depth:",
+        "far away, dark, big."
+      ]
+    },
+    {
+      "title": "Knobs",
+      "lines": [
+        "1 SPACE  6 rooms",
+        "2 DEPTH  distance",
+        "3 SIZE   0.5..4 x",
+        "4 DECAY  1..30 s",
+        "5 DIFFUSION",
+        "6 DARKNESS",
+        "7 FREEZE 8 MIX"
+      ]
+    },
+    {
+      "title": "Spaces",
+      "lines": [
+        "CATHEDRAL  CAVERN",
+        "TUNNEL     HANGAR",
+        "ABYSS      VOID",
+        "All six are made by",
+        "the module itself",
+        "(no recordings)."
+      ]
+    },
+    {
+      "title": "Depth",
+      "lines": [
+        "Not a wet knob: it",
+        "moves the sound away.",
+        "Longer predelay, less",
+        "early reflection,",
+        "more late tail, less",
+        "top end, quieter and",
+        "duller direct sound."
+      ]
+    },
+    {
+      "title": "Freeze",
+      "lines": [
+        "ON: the tail holds",
+        "and new sound stays",
+        "out of the space.",
+        "OFF: it decays again.",
+        "A new SPACE / SIZE",
+        "fades in in ~0.5 s."
+      ]
+    },
+    {
+      "title": "Where",
+      "lines": [
+        "Works in a track",
+        "slot and in Master FX",
+        "(also Send / bus",
+        "inserts)."
+      ]
+    }
+  ]
+}
