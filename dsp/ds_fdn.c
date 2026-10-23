@@ -116,8 +116,9 @@ void ds_fdn_process(ds_fdn *f, const float *in_l, const float *in_r, float *out_
     float v[DS_FDN_LINES];
     const float md_k = 0.002f;
     for (int s = 0; s < n; ++s) {
-        f->scale += (f->scale_target - f->scale) * f->scale_k;
-        if (fabsf(f->scale - f->scale_target) < 1e-6f) f->scale = f->scale_target;
+        f->scale += ((double)f->scale_target - f->scale) * f->scale_k;
+        if (fabs(f->scale - f->scale_target) < 1e-7) f->scale = f->scale_target;
+        const float scale = (float)f->scale;
         f->mod_depth += (f->mod_depth_target - f->mod_depth) * md_k;
         const float wpos = (float)f->w;
         for (int i = 0; i < DS_FDN_LINES; ++i) {
@@ -125,7 +126,7 @@ void ds_fdn_process(ds_fdn *f, const float *in_l, const float *in_r, float *out_
             const float sn = f->mod_s[i] * f->mod_rc[i] + f->mod_c[i] * f->mod_rs[i];
             f->mod_c[i] = c;
             f->mod_s[i] = sn;
-            const float d = f->base[i] * f->scale + f->mod_depth * (1.0f + sn);
+            const float d = f->base[i] * scale + f->mod_depth * (1.0f + sn);
             const float y = hermite(f->line[i], wpos - d);
             f->lp[i] = (1.0f - f->b[i]) * y + f->b[i] * f->lp[i];
             v[i] = f->g[i] * f->lp[i];

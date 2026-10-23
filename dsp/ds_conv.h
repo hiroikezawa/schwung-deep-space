@@ -81,6 +81,11 @@ typedef struct {
  * cleared by the caller - see ds_conv_regions). */
 void ds_conv_init_small(ds_conv *c);
 
+/* After the history arrays were cleared: restart the timing, keep the
+ * filters. A built or half-faded set becomes the playing one at once (with
+ * no history there is nothing to crossfade). */
+void ds_conv_reset_history(ds_conv *c);
+
 /* The big arrays that hold signal history (for incremental clearing). */
 int ds_conv_regions(ds_conv *c, void **ptr, unsigned *bytes, int max);
 

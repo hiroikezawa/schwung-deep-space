@@ -31,6 +31,7 @@ int main(void) {
         {"max (ABYSS 2 s IR)", {1, 4, 1, 4, 30, 1, 1, 0}, 0},
         {"SPACE every 1 s", {1, 0, 0.6f, 4, 30, 0.7f, 0.4f, 0}, 1},
         {"freeze", {1, 5, 0.6f, 4, 30, 1, 0.4f, 1}, 0},
+        {"MIX 0 (asleep)", {0, 4, 1, 4, 30, 1, 1, 0}, 0},
     };
     int16_t buf[256];
     uint32_t rng = 1;

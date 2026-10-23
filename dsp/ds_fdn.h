@@ -27,7 +27,8 @@ typedef struct {
     int w;
     float fs;
     float base[DS_FDN_LINES];          /* samples at scale 1 */
-    float scale, scale_target, scale_k;
+    double scale;                      /* double: a float glide this slow stalls */
+    float scale_target, scale_k;
     float lp[DS_FDN_LINES];            /* absorption filter state */
     float g[DS_FDN_LINES], b[DS_FDN_LINES];
     float mod_c[DS_FDN_LINES], mod_s[DS_FDN_LINES], mod_rc[DS_FDN_LINES], mod_rs[DS_FDN_LINES];

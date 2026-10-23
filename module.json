@@ -2,7 +2,7 @@
   "id": "deep-space",
   "name": "Deep Space Convolution",
   "abbrev": "DSPC",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Convolution + FDN space reverb for huge depth: six synthetic stereo IRs (cathedral, cavern, tunnel, hangar, abyss, void) feeding a 16-line late reverb up to 30 s. DEPTH places the sound far away (predelay, early/late balance, air absorption, direct level), SIZE rescales the space, FREEZE holds the tail. Works in track slots and in Master FX",
   "author": "Hiro Ikezawa",
   "api_version": 2,

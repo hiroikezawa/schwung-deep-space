@@ -40,6 +40,20 @@ void ds_conv_init_small(ds_conv *c) {
     c->slot = 0;
 }
 
+void ds_conv_reset_history(ds_conv *c) {
+    if (c->pending || c->fade_state) c->cur = 1 - c->cur;
+    c->pending = 0;
+    c->fade_state = 0;
+    c->fade_pos = 0;
+    c->body_on[c->cur] = 1;
+    c->body_on[1 - c->cur] = 0;
+    c->body_valid[0] = c->body_valid[1] = 0;
+    c->xa_head = 0;
+    c->xb_head = 0;
+    c->phase = 0;
+    c->slot = 0;
+}
+
 int ds_conv_regions(ds_conv *c, void **ptr, unsigned *bytes, int max) {
     void *p[] = {c->ta, c->xa_re, c->xa_im, c->chunk, c->tb, c->xb_re, c->xb_im,
                  c->accb_re, c->accb_im, c->bodyout, c->headout};

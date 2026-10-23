@@ -491,6 +491,85 @@ static void test_mix(void) {
     api->destroy_instance(in);
 }
 
+/* ---------------------------------------------------------------- sleep */
+static double block_us(void *in, const float *src, int blocks) {
+    int16_t blk[2 * BLOCK];
+    struct timespec t0, t1;
+    double total = 0;
+    for (int b = 0; b < blocks; ++b) {
+        for (int i = 0; i < 2 * BLOCK; ++i) blk[i] = (int16_t)lrintf(src[2 * b * BLOCK + i] * 32767.0f);
+        clock_gettime(CLOCK_MONOTONIC, &t0);
+        api->process_block(in, blk, BLOCK);
+        clock_gettime(CLOCK_MONOTONIC, &t1);
+        total += (t1.tv_sec - t0.tv_sec) * 1e6 + (t1.tv_nsec - t0.tv_nsec) / 1e3;
+    }
+    return total / blocks;
+}
+
+static void test_sleep(void) {
+    puts("-- MIX 0 sleeps: no wet computation; MIX back starts an empty space");
+    void *in = fresh(0.4);
+    ds_engine *e = (ds_engine *)in;
+    const long n = 12L * FS;
+    fill_mix(A, n, 0.5f);
+    const int nb = (int)(2L * FS / BLOCK);
+    const double awake = block_us(in, A, nb);
+    setp(in, "mix", 0);
+    block_us(in, A + 2 * nb * BLOCK, 200);   /* the MIX fade lands exactly on 0 in ~0.4 s */
+    check(e->asleep == 1, "MIX 0: asleep", e->asleep);
+    const double sleeping = block_us(in, A + 2 * (nb + 200) * BLOCK, nb);
+    printf("     per block: awake %.1f us, MIX 0 %.2f us\n", awake, sleeping);
+    check(sleeping < 0.05 * awake, "MIX 0 costs < 5 % of the awake path", sleeping / awake);
+    {   /* and after coming down from 40 %, MIX 0 is still a bit-exact bypass */
+        int16_t blk[2 * BLOCK], orig[2 * BLOCK];
+        int diff = 0;
+        for (int b = 0; b < 100; ++b) {
+            for (int i = 0; i < 2 * BLOCK; ++i) orig[i] = blk[i] = (int16_t)lrintf(A[2 * b * BLOCK + i] * 32767.0f);
+            api->process_block(in, blk, BLOCK);
+            diff += memcmp(blk, orig, sizeof blk) != 0;
+        }
+        check(diff == 0, "MIX 40 % -> 0: bit-exact bypass again (blocks differing)", diff);
+    }
+    /* a SPACE change while asleep is taken without waking */
+    setp(in, "space", 4);
+    int s = settle(in);
+    check(s >= 0 && e->asleep && e->built_space == 4, "SPACE changed at MIX 0: IR built, still asleep", s);
+    /* MIX back up: the space returns at once, no click */
+    long off = 2L * nb + 200 + 400;
+    run(in, A + 2 * off * BLOCK, B, FS);   /* reference: dry only, settled */
+    setp(in, "mix", 0.6);
+    run(in, A + 2 * (off + FS / BLOCK) * BLOCK, B + 2 * FS, 2L * FS);
+    check(e->asleep == 0 && e->mem_ready == 1, "MIX up: awake and cleared", e->mem_ready);
+    double base = 0, step = 0;
+    for (long i = FS / 2; i < FS; ++i) base = fmax(base, fabs(B[2 * i] - B[2 * i - 2]));
+    for (long i = FS; i < FS + FS / 2; ++i) step = fmax(step, fabs(B[2 * i] - B[2 * i - 2]));
+    check(step < 1.5 * base, "waking: largest step / dry baseline", step / base);
+    /* the wet is there within 50 ms of the MIX change: compare with a dry copy */
+    double wet = 0;
+    for (long i = FS + FS / 20; i < FS + FS / 10; ++i) {
+        double dry = A[2 * (off * BLOCK + i)] * cos(0.3 * M_PI) * (1.0 - 0.75 * 0.6);
+        wet = fmax(wet, fabs(B[2 * i] - dry));
+    }
+    check(wet > 0.01, "reverb present 50-100 ms after MIX up (peak of out - dry)", wet);
+    api->destroy_instance(in);
+
+    /* FREEZE keeps it awake, and the frozen tail survives MIX 0 */
+    in = fresh(1);
+    e = (ds_engine *)in;
+    run(in, A, B, 3L * FS);
+    sets(in, "freeze", "ON");
+    run(in, NULL, B, 2L * FS);
+    const double held = rms_of(B, FS, 2L * FS);
+    setp(in, "mix", 0);
+    run(in, NULL, B, FS);
+    check(e->asleep == 0, "FREEZE ON + MIX 0: not asleep", e->asleep);
+    setp(in, "mix", 1);
+    run(in, NULL, B, 2L * FS);
+    check(fabs(db(rms_of(B, FS, 2L * FS) / held)) < 1.0, "frozen tail back after MIX 0 -> 100 (dB)",
+          db(rms_of(B, FS, 2L * FS) / held));
+    api->destroy_instance(in);
+}
+
 /* ---------------------------------------------------------------- 10 */
 static void test_lifecycle(void) {
     puts("-- 10. instances: pool, reuse, no allocation");
@@ -618,6 +697,7 @@ int main(int argc, char **argv) {
     test_extremes();
     test_stereo();
     test_mix();
+    test_sleep();
     test_lifecycle();
     test_params();
     test_48k_and_cpu();

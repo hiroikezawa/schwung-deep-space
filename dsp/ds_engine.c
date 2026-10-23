@@ -22,6 +22,7 @@
 
 #define DS_GEN_CHUNK 4096
 #define DS_CLEAR_CHUNK (128u * 1024u)
+#define DS_WAKE_CHUNK (512u * 1024u)    /* waking: the listener is waiting */
 /* RT60 while frozen: -0.6 dB in five minutes; the slow loss is what keeps
  * the loop strictly stable. */
 #define DS_FREEZE_RT 30000.0f
@@ -61,10 +62,9 @@ static float target_wet(float mix) {
     return mix <= 0.0f ? 0.0f : (mix >= 1.0f ? 1.0f : sinf(0.5f * DS_PI * mix));
 }
 
-static void small_state(ds_engine *e) {
+/* Signal-history state only: filters, delay positions. Keeps the IR. */
+static void history_state(ds_engine *e) {
     const float fs = e->fs;
-    e->fifo_pos = 0;
-    memset(e->in_fifo, 0, sizeof e->in_fifo);
     memset(e->wet_fifo, 0, sizeof e->wet_fifo);
     for (int ch = 0; ch < 2; ++ch) {
         for (int i = 0; i < DS_AP_IN; ++i) ap_init(&e->ap_in[ch][i], k_ap_in_ms[ch][i], fs);
@@ -75,10 +75,17 @@ static void small_state(ds_engine *e) {
     }
     e->pd_w = 0;
     e->lim_env = 0.0f;
-    ds_conv_init_small(&e->conv);
     ds_fdn_init(&e->fdn, fs);
+}
+
+static void small_state(ds_engine *e) {
+    e->fifo_pos = 0;
+    memset(e->in_fifo, 0, sizeof e->in_fifo);
+    history_state(e);
+    ds_conv_init_small(&e->conv);
     e->built_space = -1;
     e->build_set = -1;
+    e->asleep = 0;
 }
 
 void ds_engine_init(ds_engine *e, float fs, int fresh) {
@@ -157,6 +164,7 @@ static int ir_wanted_differs(const ds_engine *e) {
 }
 
 int ds_engine_settled(const ds_engine *e) {
+    if (e->asleep) return e->job == DS_JOB_IDLE && !ir_wanted_differs(e) && e->g_dry == e->g_dry_t;
     const int smooth = e->g_dry == e->g_dry_t && e->g_wet == e->g_wet_t && e->dir_w == e->dir_w_t &&
                        e->depth_s == e->p[DS_P_DEPTH] && e->diff_s == e->p[DS_P_DIFFUSION] &&
                        e->dark_s == e->p[DS_P_DARKNESS] && e->frz_s == e->p[DS_P_FREEZE] &&
@@ -169,7 +177,7 @@ int ds_engine_settled(const ds_engine *e) {
 static void job_step(ds_engine *e) {
     switch (e->job) {
     case DS_JOB_CLEAR: {
-        unsigned budget = DS_CLEAR_CHUNK;
+        unsigned budget = e->wake_clear ? DS_WAKE_CHUNK : DS_CLEAR_CHUNK;
         while (budget && e->reg_idx < e->reg_count) {
             unsigned left = e->reg_bytes[e->reg_idx] - e->reg_off;
             unsigned n = left < budget ? left : budget;
@@ -183,8 +191,17 @@ static void job_step(ds_engine *e) {
         }
         if (e->reg_idx >= e->reg_count) {
             e->reg_idx = 0;
-            small_state(e);
-            ds_engine_snap(e);
+            if (e->wake_clear) {
+                /* keep the IR and every smoothed control; restart the history */
+                history_state(e);
+                ds_conv_reset_history(&e->conv);
+                ds_fdn_set_scale(&e->fdn, powf(e->p[DS_P_SIZE], 0.75f), 1);
+                e->g_er = -1.0f;
+                e->wake_clear = 0;
+            } else {
+                small_state(e);
+                ds_engine_snap(e);
+            }
             e->mem_ready = 1;
             e->job = DS_JOB_IDLE;
         }
@@ -363,12 +380,42 @@ static void wet_block(ds_engine *e) {
         memset(e->wet_fifo, 0, sizeof e->wet_fifo);
         e->mem_ready = 0;
         e->job = DS_JOB_CLEAR;
+        e->wake_clear = 0;
         e->reg_idx = 0;
         e->reg_off = 0;
     }
 }
 
+/* MIX 0, fully faded, and nothing frozen to keep: the wet path is silent
+ * anyway, so it is not computed. */
+static int can_sleep(const ds_engine *e) {
+    return e->g_wet == 0.0f && e->g_wet_t == 0.0f && e->p[DS_P_FREEZE] == 0.0f && e->frz_s == 0.0f;
+}
+
 static void internal_block(ds_engine *e) {
+    if (e->asleep) {
+        if (can_sleep(e)) {
+            /* An IR built meanwhile is simply taken: nothing is audible. */
+            if (e->conv.pending || e->conv.fade_state) ds_conv_reset_history(&e->conv);
+            job_step(e);
+            return;
+        }
+        /* MIX came back: start from an empty space. The history is cleared
+         * a slice per block (wet silent meanwhile); a half-built IR is
+         * dropped and rebuilt. */
+        e->asleep = 0;
+        if (e->job >= DS_JOB_GEN) e->built_space = -1;
+        e->wake_clear = 1;
+        e->job = DS_JOB_CLEAR;
+        e->reg_idx = 0;
+        e->reg_off = 0;
+        e->mem_ready = 0;
+    } else if (e->mem_ready && can_sleep(e)) {
+        e->asleep = 1;
+        memset(e->wet_fifo, 0, sizeof e->wet_fifo);
+        job_step(e);
+        return;
+    }
     if (e->mem_ready) wet_block(e);
     else memset(e->wet_fifo, 0, sizeof e->wet_fifo);
     job_step(e);
@@ -388,9 +435,12 @@ void ds_engine_process_float(ds_engine *e, float *l, float *r, int frames) {
         e->g_dry += (e->g_dry_t - e->g_dry) * e->mix_k;
         e->g_wet += (e->g_wet_t - e->g_wet) * e->mix_k;
         e->dir_w += (e->dir_w_t - e->dir_w) * e->mix_k;
-        if (fabsf(e->g_dry - e->g_dry_t) < 1e-6f) e->g_dry = e->g_dry_t;
-        if (fabsf(e->g_wet - e->g_wet_t) < 1e-6f) e->g_wet = e->g_wet_t;
-        if (fabsf(e->dir_w - e->dir_w_t) < 1e-6f) e->dir_w = e->dir_w_t;
+        /* Snap at 1e-4 (-80 dB): near 1.0 a float one-pole this slow stalls
+         * short of its target (the step falls under half an ulp), and MIX 0
+         * must end exactly at 1.0 to be a bit-exact bypass. */
+        if (fabsf(e->g_dry - e->g_dry_t) < 1e-4f) e->g_dry = e->g_dry_t;
+        if (fabsf(e->g_wet - e->g_wet_t) < 1e-4f) e->g_wet = e->g_wet_t;
+        if (fabsf(e->dir_w - e->dir_w_t) < 1e-4f) e->dir_w = e->dir_w_t;
 
         /* the direct sound, moved away: quieter and duller with distance */
         e->dir_lp[0] += (xl - e->dir_lp[0]) * e->dir_lp_k;

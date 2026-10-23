@@ -14,6 +14,9 @@
  * predelay, so the wet timing is still exact and the dry path has zero
  * latency). Output is therefore identical for any host block size.
  *
+ * At MIX 0 (fully faded out, FREEZE off) the wet path is not computed at
+ * all; raising MIX clears its history and starts from an empty space.
+ *
  * Background work (clearing a reused instance's memory, generating and
  * transforming a new IR) runs a slice per block on the audio thread: no
  * thread, no allocation, no file.
@@ -76,6 +79,8 @@ typedef struct {
     /* background jobs */
     int job;
     int mem_ready;
+    int asleep;         /* MIX 0: the wet path is not computed at all */
+    int wake_clear;     /* the running CLEAR keeps the IR (waking up) */
     void *reg_ptr[DS_REGIONS];
     unsigned reg_bytes[DS_REGIONS];
     int reg_count, reg_idx;
