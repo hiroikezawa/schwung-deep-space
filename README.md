@@ -10,6 +10,7 @@ IR（インパルス応答）による畳み込みで空間の初期反射と固
 - 8 ノブ 1 ページ（Schwung 標準のノブグリッド、ノブ 1 は MIX）。トラックのスロットでも **Master FX** でも使える
 - IR は 6 種類すべて**合成 IR**（固定シードから実行時に生成）。録音 IR・第三者の IR は含まない
 - DSP・FFT は完全オリジナル実装、MIT License（作者 Hiro Ikezawa）。外部ライブラリなし
+- 現在のバージョン：0.1.1
 
 | ノブ | パラメータ | 範囲 | 初期値 |
 |---|---|---|---|
@@ -23,6 +24,35 @@ IR（インパルス応答）による畳み込みで空間の初期反射と固
 | 8 | FREEZE | OFF / ON | OFF |
 
 初期値は「入力音をはっきり残したまま、背後に巨大な奥行きがある」状態です。
+
+## インストール
+
+### リリースから入れる（おすすめ）
+
+1. [Releases](../../releases) から最新の `deep-space-module.tar.gz` をダウンロードします。
+2. Schwung Manager（`http://<MoveのIP>:7700`）の Modules →「Install custom」で、そのファイルをアップロードします。
+   コマンドラインからなら：
+
+   ```bash
+   python3 scripts/install.py http://<MoveのIP>:7700 --package deep-space-module.tar.gz
+   ```
+
+3. **Move の電源を一度入れ直します。** 一度読み込まれた DSP は、スロットを読み直しても入れ替わりません。
+
+動作確認は Schwung 1.7.3（Ableton Move）で行っています。
+
+### ソースからビルドして入れる
+
+aarch64 用のクロスコンパイラ（`gcc-aarch64-linux-gnu`）と Python 3 が必要です。
+Schwung の plugin API ヘッダは `third_party/schwung/` に同梱しているので、Schwung のソースは不要です
+（UI グリッドのテストだけは Schwung のチェックアウトを使い、無ければスキップします）。
+
+```bash
+bash scripts/test.sh                                 # 全テスト（約 1 分）
+bash scripts/build.sh arm64                          # dist/deep-space-module.tar.gz を作成
+python3 scripts/install.py http://<MoveのIP>:7700    # Schwung Manager 経由でアップロード
+bash scripts/render_demo.sh                          # 試聴用 WAV を build/demo/ に書き出し
+```
 
 ## 使い方
 
@@ -187,17 +217,6 @@ schwung-deep-space/
 ```
 
 チェインホストは `audio_fx/<id>/<id>.so` を読むので、DSP は `deep-space.so` です。
-
-## ビルド・テスト・インストール
-
-```bash
-bash scripts/test.sh                              # 全テスト（約 1 分）
-bash scripts/build.sh arm64                       # dist/deep-space-module.tar.gz
-python3 scripts/install.py http://move.local:7700 # Schwung Manager 経由でインストール
-bash scripts/render_demo.sh                       # build/demo/*.wav
-```
-
-インストール後は Move を再起動してください。
 
 ## テスト（`scripts/test.sh`）
 
