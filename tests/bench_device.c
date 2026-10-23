@@ -27,10 +27,10 @@ static ds_engine e;
 int main(void) {
     ds_fft_global_init();
     const struct { const char *name; float v[8]; int switching; } cfg[] = {
-        {"defaults", {0, 0.6f, 1.5f, 8, 0.7f, 0.4f, 0, 0.4f}, 0},
-        {"max (ABYSS 2 s IR)", {4, 1, 4, 30, 1, 1, 0, 1}, 0},
-        {"SPACE every 1 s", {0, 0.6f, 4, 30, 0.7f, 0.4f, 0, 1}, 1},
-        {"freeze", {5, 0.6f, 4, 30, 1, 0.4f, 1, 1}, 0},
+        {"defaults", {0.4f, 0, 0.6f, 1.5f, 8, 0.7f, 0.4f, 0}, 0},
+        {"max (ABYSS 2 s IR)", {1, 4, 1, 4, 30, 1, 1, 0}, 0},
+        {"SPACE every 1 s", {1, 0, 0.6f, 4, 30, 0.7f, 0.4f, 0}, 1},
+        {"freeze", {1, 5, 0.6f, 4, 30, 1, 0.4f, 1}, 0},
     };
     int16_t buf[256];
     uint32_t rng = 1;

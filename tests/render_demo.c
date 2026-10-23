@@ -81,7 +81,7 @@ int main(int argc, char **argv) {
         wav_write(path, ir, g.len, FS);
         free(ir);
 
-        const float v[DS_P_COUNT] = {(float)s, 0.6f, 1.5f, 8.0f, 0.7f, 0.4f, 0.0f, 0.4f};
+        const float v[DS_P_COUNT] = {0.4f, (float)s, 0.6f, 1.5f, 8.0f, 0.7f, 0.4f, 0.0f};
         setup(v);
         memcpy(buf, groove, sizeof(float) * 2 * total);
         process(buf, total, -1, -1);
@@ -89,7 +89,7 @@ int main(int argc, char **argv) {
         wav_write(path, buf, (int)total, FS);
     }
     for (int d = 0; d <= 1; ++d) {
-        const float v[DS_P_COUNT] = {0, (float)d, 1.5f, 8.0f, 0.7f, 0.4f, 0.0f, 0.5f};
+        const float v[DS_P_COUNT] = {0.5f, 0, (float)d, 1.5f, 8.0f, 0.7f, 0.4f, 0.0f};
         setup(v);
         memcpy(buf, groove, sizeof(float) * 2 * total);
         process(buf, total, -1, -1);
@@ -97,7 +97,7 @@ int main(int argc, char **argv) {
         wav_write(path, buf, (int)total, FS);
     }
     {
-        const float v[DS_P_COUNT] = {4, 0.6f, 2.5f, 12.0f, 0.8f, 0.4f, 0.0f, 0.5f};
+        const float v[DS_P_COUNT] = {0.5f, 4, 0.6f, 2.5f, 12.0f, 0.8f, 0.4f, 0.0f};
         setup(v);
         fill_mix(buf, total, 0.5f);
         process(buf, total, 4L * FS / 128 * 128, 12L * FS / 128 * 128);

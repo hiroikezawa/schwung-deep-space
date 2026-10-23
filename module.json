@@ -16,14 +16,14 @@
     "midi_in": false,
     "midi_out": false,
     "chain_params": [
+      {"key": "mix", "name": "Mix", "short_name": "MIX", "type": "float", "min": 0, "max": 1, "step": 0.01, "default": 0.4, "unit": "%", "display_format": "%.0f"},
       {"key": "space", "name": "Space", "short_name": "SPACE", "type": "enum", "options": ["CATHEDRAL", "CAVERN", "TUNNEL", "HANGAR", "ABYSS", "VOID"], "default": "CATHEDRAL"},
       {"key": "depth", "name": "Depth", "short_name": "DEPTH", "type": "float", "min": 0, "max": 1, "step": 0.01, "default": 0.6, "unit": "%", "display_format": "%.0f"},
       {"key": "size", "name": "Size", "short_name": "SIZE", "type": "float", "min": 0.5, "max": 4, "step": 0.05, "default": 1.5, "unit": "x", "display_format": "%.2f"},
       {"key": "decay", "name": "Decay", "short_name": "DECAY", "type": "float", "min": 1, "max": 30, "step": 0.1, "default": 8, "unit": "sec", "display_format": "%.1f"},
       {"key": "diffusion", "name": "Diffusion", "short_name": "DIFF", "type": "float", "min": 0, "max": 1, "step": 0.01, "default": 0.7, "unit": "%", "display_format": "%.0f"},
       {"key": "darkness", "name": "Darkness", "short_name": "DARK", "type": "float", "min": 0, "max": 1, "step": 0.01, "default": 0.4, "unit": "%", "display_format": "%.0f"},
-      {"key": "freeze", "name": "Freeze", "short_name": "FRZ", "type": "enum", "options": ["OFF", "ON"], "default": "OFF"},
-      {"key": "mix", "name": "Mix", "short_name": "MIX", "type": "float", "min": 0, "max": 1, "step": 0.01, "default": 0.4, "unit": "%", "display_format": "%.0f"}
+      {"key": "freeze", "name": "Freeze", "short_name": "FRZ", "type": "enum", "options": ["OFF", "ON"], "default": "OFF"}
     ]
   }
 }

@@ -7,20 +7,20 @@ IR（インパルス応答）による畳み込みで空間の初期反射と固
 目標はステレオワイドナーではなく、**遥か遠くに広がる大聖堂・巨大洞窟・地下構造物・暗い無限空間**の
 「奥行き」です。
 
-- 8 ノブ 1 ページ（Schwung 標準のノブグリッド）。トラックのスロットでも **Master FX** でも使える
+- 8 ノブ 1 ページ（Schwung 標準のノブグリッド、ノブ 1 は MIX）。トラックのスロットでも **Master FX** でも使える
 - IR は 6 種類すべて**合成 IR**（固定シードから実行時に生成）。録音 IR・第三者の IR は含まない
 - DSP・FFT は完全オリジナル実装、MIT License（作者 Hiro Ikezawa）。外部ライブラリなし
 
 | ノブ | パラメータ | 範囲 | 初期値 |
 |---|---|---|---|
-| 1 | SPACE | CATHEDRAL / CAVERN / TUNNEL / HANGAR / ABYSS / VOID | CATHEDRAL |
-| 2 | DEPTH | 0–100 % | 60 % |
-| 3 | SIZE | 0.50–4.00 x | 1.50 x |
-| 4 | DECAY | 1.0–30.0 秒 | 8.0 秒 |
-| 5 | DIFFUSION | 0–100 % | 70 % |
-| 6 | DARKNESS | 0–100 % | 40 % |
-| 7 | FREEZE | OFF / ON | OFF |
-| 8 | MIX | 0–100 %（等パワー） | 40 % |
+| 1 | MIX | 0–100 %（等パワー） | 40 % |
+| 2 | SPACE | CATHEDRAL / CAVERN / TUNNEL / HANGAR / ABYSS / VOID | CATHEDRAL |
+| 3 | DEPTH | 0–100 % | 60 % |
+| 4 | SIZE | 0.50–4.00 x | 1.50 x |
+| 5 | DECAY | 1.0–30.0 秒 | 8.0 秒 |
+| 6 | DIFFUSION | 0–100 % | 70 % |
+| 7 | DARKNESS | 0–100 % | 40 % |
+| 8 | FREEZE | OFF / ON | OFF |
 
 初期値は「入力音をはっきり残したまま、背後に巨大な奥行きがある」状態です。
 

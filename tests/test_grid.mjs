@@ -29,7 +29,7 @@ function check(cond, msg) {
     else console.log("ok  ", msg.split(":")[0]);
 }
 
-const KEYS = ["space", "depth", "size", "decay", "diffusion", "darkness", "freeze", "mix"];
+const KEYS = ["mix", "space", "depth", "size", "decay", "diffusion", "darkness", "freeze"];
 const contract = JSON.parse(fs.readFileSync(path.join(here, "../build/native/contract.json"), "utf8"));
 const manifest = JSON.parse(fs.readFileSync(path.join(here, "../module.json"), "utf8"));
 const meta = Object.fromEntries(JSON.parse(contract.chain_params).map((p) => [p.key, p]));
@@ -84,7 +84,7 @@ const shot = (name) => {
 ticks(40);
 
 check(JSON.stringify(ctrl.page.keys.map(bare)) === JSON.stringify(KEYS),
-      "one page = SPACE DEPTH SIZE DECAY DIFFUSION DARKNESS FREEZE MIX: " + ctrl.page.keys);
+      "one page = MIX SPACE DEPTH SIZE DECAY DIFFUSION DARKNESS FREEZE: " + ctrl.page.keys);
 check(fb.countLit() > 200, "the page draws: " + fb.countLit());
 console.log(fb.toBlocks ? fb.toBlocks() : fb.toAscii());
 shot("main");
@@ -109,14 +109,15 @@ for (let k = 0; k < 8; k++) {
         (Number(v) >= 0 && Number(v) < m.options.length) : Number(v) >= m.min && Number(v) <= m.max;
     check(mine.length > 0 && mine.every(inRange), `knob ${k + 1} = ${KEYS[k]}: ` + writes.slice(w0));
 }
-applyInput(ctrl, decodeInput([0x90, 3, 127], {}), { nowMs: clock }); ticks(4);   /* touch DECAY */
+applyInput(ctrl, decodeInput([0x90, 4, 127], {}), { nowMs: clock }); ticks(4);   /* touch DECAY */
 shot("touch_decay");
 console.log(fb.toBlocks ? fb.toBlocks() : fb.toAscii());
-applyInput(ctrl, decodeInput([0x90, 3, 0], {}), { nowMs: clock }); ticks(80);
-applyInput(ctrl, decodeInput([0x90, 0, 127], {}), { nowMs: clock }); ticks(4);   /* touch SPACE */
+applyInput(ctrl, decodeInput([0x90, 4, 0], {}), { nowMs: clock }); ticks(80);
+applyInput(ctrl, decodeInput([0x90, 1, 127], {}), { nowMs: clock }); ticks(4);   /* touch SPACE */
 shot("touch_space");
 console.log(fb.toBlocks ? fb.toBlocks() : fb.toAscii());
 
+check(manifest.capabilities.chain_params[0].key === "mix", "knob 1 is MIX");
 check(!("ui_chain" in manifest), "no module screen: the standard grid everywhere (Master FX too)");
 check(values.space !== "CATHEDRAL" && ["OFF", "ON"].includes(values.freeze), "SPACE moved off CATHEDRAL, FREEZE is OFF/ON: " + values.space + " " + values.freeze);
 check(JSON.parse(contract.ui_hierarchy).levels.root.knobs.every((k) => k in meta), "every knob is in chain_params");

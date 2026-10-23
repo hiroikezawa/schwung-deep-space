@@ -551,8 +551,8 @@ static void test_params(void) {
     check(!strcmp(getp(in2, "freeze"), "OFF"), "FREEZE is never restored", 0);
     sets(in2, "state", "{\"space\":1}");
     check(!strcmp(getp(in2, "space"), "TUNNEL"), "incomplete state ignored", 0);
-    check(strstr(getp(in, "ui_hierarchy"), "\"knobs\":[\"space\",\"depth\",\"size\",\"decay\",\"diffusion\","
-                                            "\"darkness\",\"freeze\",\"mix\"]") != NULL,
+    check(strstr(getp(in, "ui_hierarchy"), "\"knobs\":[\"mix\",\"space\",\"depth\",\"size\",\"decay\","
+                                            "\"diffusion\",\"darkness\",\"freeze\"]") != NULL,
           "ui_hierarchy: the eight knobs in order", 0);
     check(strstr(getp(in, "chain_params"), "\"VOID\"") != NULL, "chain_params served", 0);
     api->destroy_instance(in);

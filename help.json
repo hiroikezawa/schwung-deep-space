@@ -15,13 +15,13 @@
     {
       "title": "Knobs",
       "lines": [
-        "1 SPACE  6 rooms",
-        "2 DEPTH  distance",
-        "3 SIZE   0.5..4 x",
-        "4 DECAY  1..30 s",
-        "5 DIFFUSION",
-        "6 DARKNESS",
-        "7 FREEZE 8 MIX"
+        "1 MIX    dry <-> wet",
+        "2 SPACE  6 rooms",
+        "3 DEPTH  distance",
+        "4 SIZE   0.5..4 x",
+        "5 DECAY  1..30 s",
+        "6 DIFFUSION",
+        "7 DARKNESS 8 FREEZE"
       ]
     },
     {
