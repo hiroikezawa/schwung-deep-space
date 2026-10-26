@@ -37,8 +37,8 @@ static int g_host_rate = 44100;
 static const char k_hierarchy[] =
     "{\"modes\":null,\"levels\":{"
       "\"root\":{\"label\":\"DEEP SPACE\","
-        "\"knobs\":[\"mix\",\"space\",\"depth\",\"size\",\"decay\",\"diffusion\",\"darkness\",\"freeze\"],"
-        "\"params\":[\"mix\",\"space\",\"depth\",\"size\",\"decay\",\"diffusion\",\"darkness\",\"freeze\"]}"
+        "\"knobs\":[\"mix\",\"depth\",\"size\",\"decay\",\"diffusion\",\"darkness\",\"freeze\",\"space\"],"
+        "\"params\":[\"mix\",\"depth\",\"size\",\"decay\",\"diffusion\",\"darkness\",\"freeze\",\"space\"]}"
     "}}";
 
 static const char *const *enum_names(int idx, int *count) {

@@ -30,6 +30,7 @@ for p, (key, lo, hi, de, integer) in zip(cp, rows):
         assert integer == "0", key
 assert meta["dsp"] == meta["id"] + ".so", "the chain host loads audio_fx/<id>/<id>.so"
 assert cp[0]["key"] == "mix", "knob 1 is MIX"
+assert cp[7]["key"] == "space", "knob 8 is SPACE"
 version = meta["version"]
 
 

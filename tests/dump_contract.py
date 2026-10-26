@@ -36,7 +36,7 @@ def read(key):
     return None if n < 0 else buf.value.decode()
 
 
-keys = ["mix", "space", "depth", "size", "decay", "diffusion", "darkness", "freeze"]
+keys = ["mix", "depth", "size", "decay", "diffusion", "darkness", "freeze", "space"]
 out = {"ui_hierarchy": read("ui_hierarchy"), "chain_params": read("chain_params"),
        "values": {k: read(k) for k in keys}}
 assert json.loads(out["ui_hierarchy"])["levels"]["root"]["knobs"] == keys, "ui_hierarchy must list the 8 knobs"

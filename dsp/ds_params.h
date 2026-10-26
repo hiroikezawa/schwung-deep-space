@@ -14,13 +14,13 @@
 
 enum {
     DS_P_MIX,        /* equal-power dry/wet, knob 1 */
-    DS_P_SPACE,      /* IR preset, 0..5 */
     DS_P_DEPTH,      /* distance macro */
     DS_P_SIZE,       /* spatial scale, 0.5..4 */
     DS_P_DECAY,      /* late RT60, 1..30 s */
     DS_P_DIFFUSION,
     DS_P_DARKNESS,
     DS_P_FREEZE,     /* 0 off, 1 on */
+    DS_P_SPACE,      /* IR preset, 0..5, knob 8 */
     DS_P_COUNT
 };
 
@@ -32,13 +32,13 @@ typedef struct {
 
 static const ds_param_info DS_PARAMS[DS_P_COUNT] = {
     {"mix",       0.0f, 1.0f,  0.4f, 0},
-    {"space",     0.0f, 5.0f,  0.0f, 1},
     {"depth",     0.0f, 1.0f,  0.6f, 0},
     {"size",      0.5f, 4.0f,  1.5f, 0},
     {"decay",     1.0f, 30.0f, 8.0f, 0},
     {"diffusion", 0.0f, 1.0f,  0.7f, 0},
     {"darkness",  0.0f, 1.0f,  0.4f, 0},
     {"freeze",    0.0f, 1.0f,  0.0f, 1},
+    {"space",     0.0f, 5.0f,  0.0f, 1},
 };
 
 #define DS_SPACE_COUNT 6
