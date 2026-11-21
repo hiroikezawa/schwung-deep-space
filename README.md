@@ -1,244 +1,278 @@
 # Deep Space Convolution
 
-Ableton Move 上の Schwung で動く、オリジナルの Audio FX モジュールです（id `deep-space`）。
+**English** | [日本語](README.ja.md)
 
-IR（インパルス応答）による畳み込みで空間の初期反射と固有の響きを作り、その出力で
-16 ラインの FDN（Feedback Delay Network）を励振して、最大 30 秒の後期残響へつなぎます。
-目標はステレオワイドナーではなく、**遥か遠くに広がる大聖堂・巨大洞窟・地下構造物・暗い無限空間**の
-「奥行き」です。
+An original Audio FX module for Schwung on Ableton Move (id `deep-space`).
 
-- 8 ノブ 1 ページ（Schwung 標準のノブグリッド、ノブ 1 は MIX、ノブ 8 は SPACE）。トラックのスロットでも **Master FX** でも使える
-- IR は 6 種類すべて**合成 IR**（固定シードから実行時に生成）。録音 IR・第三者の IR は含まない
-- DSP・FFT は完全オリジナル実装、MIT License（作者 Hiro Ikezawa）。外部ライブラリなし
-- 現在のバージョン：0.1.2
+Convolution with an IR (impulse response) creates the early reflections and the
+character of a space, and its output excites a 16-line FDN (Feedback Delay Network)
+that carries on into a late reverb of up to 30 seconds. The goal is not a stereo
+widener but **depth: a cathedral, a vast cavern, an underground structure, a dark
+endless space stretching far away**.
 
-| ノブ | パラメータ | 範囲 | 初期値 |
+- 8 knobs on one page (Schwung's standard knob grid; knob 1 is MIX, knob 8 is SPACE).
+  Works in a track slot and as **Master FX**
+- All six IRs are **synthetic IRs** (generated at run time from fixed seeds). No recorded
+  or third-party IRs are included
+- DSP and FFT are entirely original code, MIT License (author Hiro Ikezawa). No external
+  libraries
+- Current version: 0.1.2
+
+| Knob | Parameter | Range | Default |
 |---|---|---|---|
-| 1 | MIX | 0–100 %（等パワー） | 40 % |
+| 1 | MIX | 0–100 % (equal power) | 40 % |
 | 2 | DEPTH | 0–100 % | 60 % |
 | 3 | SIZE | 0.50–4.00 x | 1.50 x |
-| 4 | DECAY | 1.0–30.0 秒 | 8.0 秒 |
+| 4 | DECAY | 1.0–30.0 s | 8.0 s |
 | 5 | DIFFUSION | 0–100 % | 70 % |
 | 6 | DARKNESS | 0–100 % | 40 % |
 | 7 | FREEZE | OFF / ON | OFF |
 | 8 | SPACE | CATHEDRAL / CAVERN / TUNNEL / HANGAR / ABYSS / VOID | CATHEDRAL |
 
-初期値は「入力音をはっきり残したまま、背後に巨大な奥行きがある」状態です。
+The defaults keep the input clearly audible with a huge depth behind it.
 
-## インストール
+## Installation
 
-### リリースから入れる（おすすめ）
+### From a release (recommended)
 
-1. [Releases](../../releases) から最新の `deep-space-module.tar.gz` をダウンロードします。
-2. Schwung Manager（`http://<MoveのIP>:7700`）の Modules →「Install custom」で、そのファイルをアップロードします。
-   コマンドラインからなら：
+1. Download the latest `deep-space-module.tar.gz` from [Releases](../../releases).
+2. Upload it in Schwung Manager (`http://<Move's IP>:7700`) under Modules → "Install custom".
+   From the command line:
 
    ```bash
-   python3 scripts/install.py http://<MoveのIP>:7700 --package deep-space-module.tar.gz
+   python3 scripts/install.py http://<Move's IP>:7700 --package deep-space-module.tar.gz
    ```
 
-3. **Move の電源を一度入れ直します。** 一度読み込まれた DSP は、スロットを読み直しても入れ替わりません。
+3. **Power-cycle Move once.** A DSP that has been loaded is not replaced by reloading
+   the slot.
 
-動作確認は Schwung 1.7.3（Ableton Move）で行っています。
+Tested on Schwung 1.7.3 (Ableton Move).
 
-### ソースからビルドして入れる
+### Building from source
 
-aarch64 用のクロスコンパイラ（`gcc-aarch64-linux-gnu`）と Python 3 が必要です。
-Schwung の plugin API ヘッダは `third_party/schwung/` に同梱しているので、Schwung のソースは不要です
-（UI グリッドのテストだけは Schwung のチェックアウトを使い、無ければスキップします）。
+You need an aarch64 cross compiler (`gcc-aarch64-linux-gnu`) and Python 3. The Schwung
+plugin API header is bundled in `third_party/schwung/`, so the Schwung source is not
+needed (only the UI grid test uses a Schwung checkout, and it is skipped if there is none).
 
 ```bash
-bash scripts/test.sh                                 # 全テスト（約 1 分）
-bash scripts/build.sh arm64                          # dist/deep-space-module.tar.gz を作成
-python3 scripts/install.py http://<MoveのIP>:7700    # Schwung Manager 経由でアップロード
-bash scripts/render_demo.sh                          # 試聴用 WAV を build/demo/ に書き出し
+bash scripts/test.sh                                   # all tests (about 1 minute)
+bash scripts/build.sh arm64                            # creates dist/deep-space-module.tar.gz
+python3 scripts/install.py http://<Move's IP>:7700     # upload through Schwung Manager
+bash scripts/render_demo.sh                            # writes listening WAVs to build/demo/
 ```
 
-## 使い方
+## Usage
 
-1. トラックのスロット（Signal Chain）の Audio FX、または Master FX（Shift+Vol+Menu）に
-   **Deep Space Convolution** を入れる
-2. まず初期値のまま鳴らす。DEPTH を上げると音源そのものが遠くへ下がっていく
-3. SPACE で空間の種類、SIZE で空間の大きさ、DECAY で後期残響の長さを決める
-4. FREEZE を ON にすると、その瞬間の残響がそのまま持続し、以降の入力は空間に入らない（ドライ音はそのまま通る）
+1. Put **Deep Space Convolution** in the Audio FX of a track slot (Signal Chain), or in
+   Master FX (Shift+Vol+Menu)
+2. Play it with the defaults first. Raising DEPTH moves the source itself further away
+3. SPACE picks the kind of space, SIZE its size, and DECAY the length of the late reverb
+4. FREEZE ON holds the reverb of that moment; later input no longer enters the space
+   (the dry sound still passes)
 
-SPACE / SIZE を変えたとき、および DECAY を IR 自身の減衰より短くしたときは、新しい IR を
-オーディオスレッド上で少しずつ生成・変換し（約 0.2 秒）、準備ができた時点で約 0.3 秒かけて
-クロスフェードします。ノブを回している間は生成をやり直し続け、止まった値で 1 回だけ切り替わります。
+When SPACE / SIZE change, or DECAY is set shorter than the IR's own decay, a new IR is
+generated and transformed a little at a time on the audio thread (about 0.2 s) and,
+once ready, crossfaded in over about 0.3 s. While a knob is turning the generation keeps
+restarting, and it switches only once, at the value where the knob stops.
 
-## 各ノブの動作
+## What each knob does
 
-- **MIX**：等パワーのドライ / ウェット。0 % は完全なバイパス（ビット一致）、100 % はドライなし。
-  MIX が 0 まで下がりきると（約 0.4 秒）残響の計算そのものを止め、CPU はほぼ 0 になります。
-  MIX を上げ直すと残響の履歴を消去（約 20 ms、その間は Wet 無音）してから空の空間で再開するので、
-  MIX 0 の間の入力は残響に残りません。FREEZE が ON のときは止めないので、MIX 0 → 上げ直しで
-  同じ凍結音が戻ります。MIX 0 の間に SPACE / SIZE を変えた場合も IR は作っておき、上げ直した時点で使います。
-- **DEPTH**：単純な Wet 量ではなく「距離」です。次をすべて連動して動かします。
-  - プリディレイ 3 → 180 ms（SIZE で 0.85–1.9 倍）
-  - 初期反射 / 後期残響の比率（初期反射のゲイン 1.0 → 0.3、後期 0.5 → 1.3）
-  - 遠方の空気吸収（Wet のローパス：オフ → 約 2.6 kHz）
-  - 反射密度（初期反射と FDN 入力の拡散オールパスの係数が上がる）
-  - 直接音 / 残響音の比率（直接音を最大 −12 dB、かつ高域を落とす。MIX が 0 のときは何もしない）
-  - ラウドネス補償（Wet を最大 +4.1 dB）で、遠ざけても「ただ小さくなるだけ」にならないようにしている
-- **SIZE**：空間のスケール。IR の時間構造（初期反射の時刻、最初の反射までの間、ブルーム、フラッター周期、
-  IR の長さ、IR の減衰時間、金属的な共鳴の周波数）を作り直し、FDN の 16 本のディレイ長
-  （SIZE^0.75 倍）とプリディレイも伸縮します。ピッチ変更ではありません（FDN の長さは約 0.35 秒かけて
-  滑らかに追従するので、回している間だけわずかにドップラー的な揺れが出ます）。
-- **DECAY**：後期残響の RT60（低域）。FDN の各ラインの減衰をライン長ごとに計算しているので、
-  SIZE を変えても RT60 は変わりません。IR 自身の減衰が DECAY より長い場合は IR 側も短くします。
-- **DIFFUSION**：FDN 入力の拡散オールパス（4 段）、初期反射の密度、FDN のディレイ変調量。
-  低いと反射の粒が見え、高いと滑らかな壁になります。
-- **DARKNESS**：FDN の周波数依存減衰（高域の RT60 を低域の 0.9 倍 → 0.08 倍）と Wet の高域。
-- **FREEZE**：下記。
-- **SPACE**：6 種類の合成ステレオ IR を切り替える（下表）。
+- **MIX**: equal-power dry / wet. 0 % is a complete bypass (bit-identical); 100 % has no
+  dry signal. Once MIX has gone all the way to 0 (about 0.4 s) the reverb processing
+  itself stops and the CPU load drops to almost zero. Raising MIX again clears the
+  reverb history (about 20 ms, wet silent meanwhile) and restarts in an empty space, so
+  input played during MIX 0 does not linger in the reverb. With FREEZE ON it does not
+  stop, so MIX 0 → back up returns the same frozen sound. If SPACE / SIZE change during
+  MIX 0, the IR is still built and used when MIX comes back up.
+- **DEPTH**: not just a wet amount but "distance". It moves all of the following together:
+  - Pre-delay 3 → 180 ms (× 0.85–1.9 by SIZE)
+  - The early / late ratio (early reflection gain 1.0 → 0.3, late 0.5 → 1.3)
+  - Distant air absorption (a wet low-pass: off → about 2.6 kHz)
+  - Reflection density (the diffusion all-pass coefficients of the early reflections and
+    the FDN input rise)
+  - Direct / reverb ratio (the direct sound down by up to −12 dB, with its highs
+    reduced; nothing happens at MIX 0)
+  - Loudness compensation (wet up to +4.1 dB), so moving away does not just mean getting
+    quieter
+- **SIZE**: the scale of the space. It rebuilds the IR's time structure (the times of
+  the early reflections, the gap before the first one, the bloom, the flutter period,
+  the IR length, its decay time, the frequencies of its metallic resonances) and also
+  stretches the FDN's 16 delay lengths (× SIZE^0.75) and the pre-delay. It is not a
+  pitch change (the FDN lengths follow smoothly over about 0.35 s, so a slight
+  Doppler-like wobble appears only while turning).
+- **DECAY**: RT60 of the late reverb (low band). Each FDN line's loss is computed from
+  its own length, so changing SIZE does not change the RT60. If the IR's own decay is
+  longer than DECAY, the IR is shortened too.
+- **DIFFUSION**: the FDN input diffusion all-passes (4 stages), the density of the early
+  reflections, and the FDN's delay modulation. Low values let individual reflections be
+  heard; high values give a smooth wall.
+- **DARKNESS**: the FDN's frequency-dependent loss (high-band RT60 from 0.9× down to
+  0.08× the low band) and the wet highs.
+- **FREEZE**: see below.
+- **SPACE**: switches between six synthetic stereo IRs (table below).
 
-### FREEZE の仕組み
+### How FREEZE works
 
-ON にすると、空間への入力（プリディレイ前）を 0.25 秒、FDN への入力を 0.12 秒かけて遮断し、
-同時に FDN の RT60 を 0.5 秒かけて 30000 秒へ移します。凍結中も FDN 入力を閉じているのは、
-畳み込みがまだ鳴らしている IR の尾が、損失のなくなったループに溜まって音量が上がるのを防ぐためです。
-RT60 30000 秒は 5 分で約 −0.6 dB の減衰で、このわずかな損失がループの安定性を保証しています
-（完全な無限持続ではなく、安定性を優先）。OFF で逆の順に戻り、通常の DECAY で減衰します。
+When turned on, the input to the space (before the pre-delay) is closed over 0.25 s and
+the input to the FDN over 0.12 s, while the FDN's RT60 moves to 30000 s over 0.5 s. The
+FDN input stays closed while frozen so that the IR tail the convolution is still playing
+cannot pile up in the now lossless loop and grow louder. An RT60 of 30000 s is a loss of
+about −0.6 dB over 5 minutes, and that small loss is what guarantees the loop stays
+stable (not a perfectly infinite hold; stability comes first). Turning it off reverses
+the steps and the sound decays at the normal DECAY.
 
-## IR プリセット（すべて合成）
+## IR presets (all synthetic)
 
-各 IR は `dsp/ds_irgen.c` が固定シードから生成します。同じ設定なら、どのマシンでも毎回同じ IR になります。
-モデル：共有ノイズと各チャンネル固有ノイズの混合（ステレオ幅）を、クロスオーバーで分けた 2 帯域の
-指数減衰（高域が先に消える）× ブルーム × ゆっくりした振幅の揺らぎで成形し、初期反射のインパルス列、
-平行壁のフラッターエコー、構造の共鳴（減衰する正弦波）を加えて、2 段ローパス + ハイパスで空間の
-音色を付け、最後の 1/4 をフェードアウトします。エネルギーで正規化し、プリセット間の音量差を補正しています。
+Each IR is generated by `dsp/ds_irgen.c` from a fixed seed, so the same settings give
+the same IR on any machine, every time.
+The model: a mix of shared noise and per-channel noise (stereo width) is shaped by a
+two-band exponential decay split at a crossover (the highs die first) × a bloom × a slow
+amplitude fluctuation; a train of early reflection impulses, flutter echoes between
+parallel walls and structural resonances (decaying sines) are added; a two-stage
+low-pass plus a high-pass give the space its colour, and the last quarter fades out.
+Energy normalisation evens out the level differences between presets.
 
-| SPACE | 特徴（SIZE 1 のとき） |
+| SPACE | Character (at SIZE 1) |
 |---|---|
-| CATHEDRAL | 最初の反射 22 ms、30 本の初期反射（〜160 ms）、低域 RT 4.2 s / 高域 2.2 s、70 ms のブルーム、広いステレオ |
-| CAVERN | 9 ms からの密集した不規則な反射 44 本（〜240 ms）、暗い（5.2 kHz）、低域 RT 4.8 s / 高域 1.3 s、大きな揺らぎ |
-| TUNNEL | 41 ms 間隔のフラッターエコー、187/374/561 Hz の管の共鳴、狭いステレオ、低域を少し削る |
-| HANGAR | 30–340 ms の大きく離れたスラップ 9 本、明るい（15 kHz、高域 RT 2.8 s）、6 本の金属的な共鳴 |
-| ABYSS | 初期反射なし、480 ms かけて闇から立ち上がる、極端に暗い（2.6 kHz）、超低域寄り、低域 RT 7.5 s |
-| VOID | 初期反射なし、完全に無相関なステレオ、160 Hz 以下なし、明るく長い（高域 RT 4.5 s）、260 ms のフェードイン |
+| CATHEDRAL | First reflection at 22 ms, 30 early reflections (to ~160 ms), low-band RT 4.2 s / high 2.2 s, 70 ms bloom, wide stereo |
+| CAVERN | 44 dense, irregular reflections from 9 ms (to ~240 ms), dark (5.2 kHz), low-band RT 4.8 s / high 1.3 s, strong fluctuation |
+| TUNNEL | Flutter echoes 41 ms apart, tube resonances at 187/374/561 Hz, narrow stereo, slightly reduced lows |
+| HANGAR | 9 widely spaced slaps from 30 to 340 ms, bright (15 kHz, high-band RT 2.8 s), 6 metallic resonances |
+| ABYSS | No early reflections, rises out of the dark over 480 ms, extremely dark (2.6 kHz), weighted to the deep lows, low-band RT 7.5 s |
+| VOID | No early reflections, fully decorrelated stereo, nothing below 160 Hz, bright and long (high-band RT 4.5 s), 260 ms fade-in |
 
-IR の長さは 1.4–2.0 秒 × SIZE（上限 2.0 秒）。確認用に `scripts/render_demo.sh` が
-`build/demo/irs/<SPACE>.wav` に IR そのものを書き出します（SIZE 1.5、DECAY 30、ピーク −1 dBFS）。
+IR length is 1.4–2.0 s × SIZE (capped at 2.0 s). For checking, `scripts/render_demo.sh`
+writes the IRs themselves to `build/demo/irs/<SPACE>.wav` (SIZE 1.5, DECAY 30,
+peak −1 dBFS).
 
-## DSP 信号経路
+## DSP signal path
 
 ```text
-Stereo In ─┬───────────────────────────────── 直接音（DEPTH で距離感: 減衰 + 高域カット）─┐
+Stereo In ─┬──────────────────────────── direct sound (DEPTH sets distance: level + high cut) ─┐
            │                                                                                │
-           └→ FREEZE ゲート → プリディレイ（DEPTH / SIZE）                                  │
-                 → 分割畳み込み（ステレオ IR）                                              │
-                 → 密度拡散（2 段オールパス） ─────────────┬──→ 初期反射 × gE(DEPTH)        │
-                 → 入力拡散（4 段オールパス）→ FDN ゲート   │                               │
-                 → 16 ライン FDN（Hadamard、周波数依存減衰、変調） → 後期残響 × gL(DEPTH)   │
+           └→ FREEZE gate → pre-delay (DEPTH / SIZE)                                        │
+                 → partitioned convolution (stereo IR)                                      │
+                 → density diffusion (2 all-passes) ───────┬──→ early reflections × gE(DEPTH)│
+                 → input diffusion (4 all-passes) → FDN gate│                               │
+                 → 16-line FDN (Hadamard, frequency-dependent loss, modulation) → late × gL(DEPTH)│
                        ↓                                                                    │
-                 空気吸収 LP（DEPTH・DARKNESS）→ ラウドネス補償 → DC 除去 → Wet ピーク保護 ─┤ MIX
+                 air absorption LP (DEPTH, DARKNESS) → loudness comp → DC removal → wet peak guard ─┤ MIX
                                                                                             ↓
-                                                         最終段のピーク保護（−0.2 dBFS 以上のみ）→ Out
+                                                    final peak guard (only above −0.2 dBFS) → Out
 ```
 
-### 畳み込みエンジン（`dsp/ds_conv.c`）
+### Convolution engine (`dsp/ds_conv.c`)
 
-非一様分割の overlap-save 畳み込みです。
+Non-uniformly partitioned overlap-save convolution.
 
-| 段 | IR の範囲 | 分割 | FFT | 処理 |
+| Stage | IR range | Partitions | FFT | Processing |
 |---|---|---|---|---|
-| HEAD | 0 – 4096 サンプル | 128 × 32 | 256 点実 FFT | 毎ブロック。追加レイテンシ 0 |
-| BODY | 4096 – 96256 サンプル | 2048 × 最大 45 | 4096 点実 FFT | 16 ブロック（1 サイクル）に分散 |
+| HEAD | 0 – 4096 samples | 128 × 32 | 256-point real FFT | Every block. No added latency |
+| BODY | 4096 – 96256 samples | 2048 × up to 45 | 4096-point real FFT | Spread over 16 blocks (one cycle) |
 
-BODY の 1 サイクル（128 × 16 = 2048 サンプル）の内訳は、ブロック 0/1 で左右の順 FFT、2–13 で
-周波数領域の積和（45 パーティションを 12 等分）、14/15 で左右の逆 FFT。BODY を IR の 4096 サンプル目
-（= 2 × 2048）から始めているので、この分散に必要な余裕がちょうど確保され、出力は時間的に正確です。
+One BODY cycle (128 × 16 = 2048 samples) breaks down as: blocks 0/1 the left and right
+forward FFTs, 2–13 the frequency-domain multiply-accumulate (45 partitions in 12 equal
+parts), 14/15 the left and right inverse FFTs. BODY starts at IR sample 4096
+(= 2 × 2048), which gives exactly the headroom this spreading needs, so the output is
+correctly timed.
 
-- IR のスペクトルはすべて事前に FFT 済み（ビルド時に 1/N も畳み込み済み）。FFT のテーブルは
-  プラグインの初期化時に 1 回だけ作り、オーディオコールバック内では初期化しない
-- 入力の周波数領域ディレイラインを 2 つのフィルタセットで共有するので、IR 切り替えは
-  「新しいセットを 1 サイクル並走 → 6 サイクル（約 0.28 秒）の等パワークロスフェード」で、履歴を失わない
-- ホストのブロックサイズに関係なく、内部は常に 128 サンプル単位（128 サンプルの FIFO。
-  その分プリディレイを短くしているので Wet の時刻は正確、ドライはレイテンシ 0）
-- 直接畳み込みとの誤差は −129 dB 以下（テスト 1）
+- All IR spectra are FFT'd ahead of time (with 1/N folded in at build time). FFT tables
+  are built once at plugin initialisation and never initialised in the audio callback
+- The input's frequency-domain delay line is shared by two filter sets, so an IR switch
+  is "run the new set alongside for one cycle → equal-power crossfade over 6 cycles
+  (about 0.28 s)" and loses no history
+- Internally it always works in 128-sample units whatever the host block size (a
+  128-sample FIFO; the pre-delay is shortened by that much, so the wet timing is exact
+  and the dry path has zero latency)
+- Error against direct convolution is below −129 dB (test 1)
 
-### 後期残響（`dsp/ds_fdn.c`）
+### Late reverb (`dsp/ds_fdn.c`)
 
-16 本のディレイライン（SIZE 1 で 17.3–96.7 ms、SIZE^0.75 倍）、16×16 Hadamard 行列（高速
-Walsh–Hadamard 変換、直交 = 無損失）、各ラインに DC 利得と Nyquist 利得を RT60 から決める
-1 次の吸収フィルタ、0.06–0.26 Hz の独立した微小変調（1.5–9 サンプル、3 次エルミート補間）、
-出力の DC 除去、通常の 4 倍以上でだけ働く安全リミット（テストでは一度も作動していない）。
+16 delay lines (17.3–96.7 ms at SIZE 1, × SIZE^0.75), a 16×16 Hadamard matrix (fast
+Walsh–Hadamard transform; orthogonal = lossless), a first-order absorption filter per
+line whose DC and Nyquist gains come from the RT60, independent slight modulation at
+0.06–0.26 Hz (1.5–9 samples, cubic Hermite interpolation), output DC removal, and a
+safety limiter that only acts above 4× the normal level (it never triggered in the tests).
 
-### 安全対策
+### Safety
 
-- NaN / Inf：Wet ブロックごとに検査し、万一出たら Wet を無音にしてメモリを消去・IR を作り直す（テストでは発生 0）
-- Denormal：処理中だけ FPCR の FZ ビット（x86 では FTZ/DAZ）を立て、終わったら元に戻す
-- オーディオスレッドでのメモリ確保・ファイル I/O・ロック・スレッド生成なし。インスタンスは静的プールから
-  CAS で取得（`scripts/check_abi.py` が malloc / mutex の参照をビルドで拒否）
-- 使い回したスロットの信号履歴（約 3 MB）は 1 ブロック 128 KB ずつ消去してから使う
+- NaN / Inf: checked every wet block; if one ever appears, the wet goes silent, memory is
+  cleared and the IR is rebuilt (0 occurrences in the tests)
+- Denormals: the FPCR FZ bit (FTZ/DAZ on x86) is set only during processing and restored
+  afterwards
+- No memory allocation, file I/O, locks or thread creation on the audio thread.
+  Instances come from a static pool via CAS (`scripts/check_abi.py` rejects malloc / mutex
+  references at build time)
+- A reused slot's signal history (about 3 MB) is cleared 128 KB per block before use
 
-## CPU・メモリ・レイテンシ
+## CPU, memory, latency
 
-- レイテンシ：**0 サンプル**（ドライ経路、畳み込みの HEAD とも追加遅延なし）
-- メモリ：1 インスタンス 6.6 MB（IR スペクトル 2 セット 3.1 MB、周波数領域ディレイライン 1.5 MB、
-  FDN 1.0 MB、IR 生成バッファ 0.73 MB、プリディレイ 0.25 MB）。静的プール 8 個分（53 MB）は
-  仮想領域で、使われたインスタンスの分しか実メモリを消費しない
-- CPU：下記「Move 実機での計測」を参照
+- Latency: **0 samples** (no added delay in the dry path or in the convolution HEAD)
+- Memory: 6.6 MB per instance (two IR spectrum sets 3.1 MB, frequency-domain delay line
+  1.5 MB, FDN 1.0 MB, IR generation buffers 0.73 MB, pre-delay 0.25 MB). The static pool
+  of 8 (53 MB) is virtual space; only instances in use take real memory
+- CPU: see "Measured on Move" below
 
-## ファイル構成
+## Files
 
 ```text
 schwung-deep-space/
 ├── LICENSE                     MIT (Hiro Ikezawa)
-├── README.md                   このファイル
-├── THIRD_PARTY_LICENSES.md     Schwung API ヘッダ (MIT) の notice、合成 IR であることの明記
-├── module.json                 id deep-space, audio_fx, chain_params 8 個
-├── help.json                   本体ヘルプ (ASCII)
+├── README.md                   this file
+├── README.ja.md                Japanese version
+├── THIRD_PARTY_LICENSES.md     notice for the Schwung API header (MIT), statement that the IRs are synthetic
+├── module.json                 id deep-space, audio_fx, 8 chain_params
+├── help.json                   on-device help (ASCII)
 ├── dsp/
-│   ├── ds_plugin.c             audio_fx_api_v2 アダプタ、ui_hierarchy、インスタンスプール、状態保存
-│   ├── ds_engine.c/.h          全体の接続、DEPTH / FREEZE / MIX、スムージング、IR の段階的ビルド
-│   ├── ds_conv.c/.h            非一様分割ステレオ畳み込み、2 セットのクロスフェード
-│   ├── ds_fft.c/.h             実 FFT（256 点 / 4096 点）
-│   ├── ds_irgen.c/.h           6 種類の合成ステレオ IR
-│   ├── ds_fdn.c/.h             16 ライン FDN
-│   ├── ds_params.h             パラメータ表 (module.json と一致をビルド時に検査)
-│   └── ds_dsp.h                1 次フィルタ係数、乱数、FTZ
-├── third_party/schwung/        Schwung の plugin API ヘッダ (MIT, 無改変)
+│   ├── ds_plugin.c             audio_fx_api_v2 adapter, ui_hierarchy, instance pool, state save
+│   ├── ds_engine.c/.h          overall wiring, DEPTH / FREEZE / MIX, smoothing, staged IR build
+│   ├── ds_conv.c/.h            non-uniformly partitioned stereo convolution, crossfade of two sets
+│   ├── ds_fft.c/.h             real FFT (256 / 4096 points)
+│   ├── ds_irgen.c/.h           the six synthetic stereo IRs
+│   ├── ds_fdn.c/.h             16-line FDN
+│   ├── ds_params.h             parameter table (checked against module.json at build time)
+│   └── ds_dsp.h                first-order filter coefficients, random numbers, FTZ
+├── third_party/schwung/        Schwung plugin API header (MIT, unmodified)
 ├── scripts/
-│   ├── build.sh                native / asan / arm64 ビルド、arm64 は dist/ に tarball
-│   ├── test.sh                 全テスト
-│   ├── render_demo.sh          オフライン試聴用 WAV と IR の WAV
-│   ├── install.py              Schwung Manager 経由のインストール
-│   ├── metadata.py             module.json → DSP 埋め込み + 整合チェック
-│   ├── check_abi.py            ARM64 .so の ABI 検査
-│   └── check_licenses.py       コピーレフト混入・著作権表示の検査
+│   ├── build.sh                native / asan / arm64 builds; arm64 puts a tarball in dist/
+│   ├── test.sh                 all tests
+│   ├── render_demo.sh          offline listening WAVs and IR WAVs
+│   ├── install.py              install through Schwung Manager
+│   ├── metadata.py             module.json → embedded in the DSP + consistency check
+│   ├── check_abi.py            ABI check of the ARM64 .so
+│   └── check_licenses.py       checks for copyleft code and copyright notices
 └── tests/
-    ├── test_engine.c           エンジン / プラグイン API テスト
-    ├── test_grid.mjs           実機と同じページエンジンで標準グリッドのテスト
-    ├── dump_contract.py        ビルドした .so の応答をグリッドテストへ渡す
-    ├── render_demo.c           デモレンダラ
-    ├── signals.h               ドラム / コード / ピンクノイズ等の合成テスト信号、WAV 書き出し
-    └── bench_device.c          Move 実機用 CPU ベンチ (静的 aarch64 バイナリ)
+    ├── test_engine.c           engine / plugin API tests
+    ├── test_grid.mjs           standard grid test with the same page engine as the device
+    ├── dump_contract.py        passes the built .so's answers to the grid test
+    ├── render_demo.c           demo renderer
+    ├── signals.h               synthetic test signals (drums, chords, pink noise, ...), WAV writer
+    └── bench_device.c          CPU benchmark for Move (static aarch64 binary)
 ```
 
-チェインホストは `audio_fx/<id>/<id>.so` を読むので、DSP は `deep-space.so` です。
+The chain host loads `audio_fx/<id>/<id>.so`, so the DSP is `deep-space.so`.
 
-## テスト（`scripts/test.sh`）
+## Tests (`scripts/test.sh`)
 
-| # | 内容 | 結果 |
+| # | What | Result |
 |---|---|---|
-| 1 | 分割畳み込み = 直接畳み込み（IR 3000 / 4096 / 4097 / 40000 / 96256 サンプル）、インパルス → IR そのもの | 誤差 −129〜−134 dB、インパルス誤差 4e-7 |
-| 2 | ホストのブロックサイズ 1 / 37 / 64 / 300 / 1–300 ランダム vs 128 | 出力の差 0（ビット一致） |
-| 3 | SPACE 6 回 + SIZE + DECAY の切り替え中の最大サンプル段差・20 ms レベル変化 | 段差は定常時の 1.33 倍以内、レベル変化 +0.1 dB |
-| 4 | DECAY 1 / 2 / 5 / 10 / 20 / 30 秒 → 実測 RT60（400 Hz 以下、EDC −10〜−40 dB） | 1.17 / 1.10 / 1.01 / 0.99 / 0.99 / 0.98 倍 |
-| 5 | DEPTH 0 → 100 %（6 プリセット）：プリディレイ、初期/後期比、スペクトル重心、ラウドネス | 下表 |
-| 6 | FREEZE を 5 分（入力は鳴らし続ける）→ 解除 | 上昇なし、5 分で −1.7 dB 以内、DC 4.5e-6、クリックなし、解除後に減衰 |
-| 7 | 全連続パラメータの最小/最大 64 通り × フルスケール入力 × FREEZE on/off | NaN/Inf 0、ピーク ≤ 1.0 |
-| 8 | 左のみ / モノ入力 → 左右に無相関な残響、ドライは元の側に残る | R/L −3.9 dB、相関 0.02 / 0.05 |
-| 9 | MIX 0 / 50 / 100 % | 0 % はビット一致バイパス、50 % でドライ −3 dB、100 % でドライなし |
-| — | MIX 0 で休止：計算を止める（デスクトップで 49.5 → 1.5 µs/ブロック）、40 % → 0 でもビット一致、上げ直しでクリックなし・50–100 ms 後に残響あり、FREEZE 中は休止しない | OK |
-| 10 | インスタンス 8 個 + 9 個目は拒否、生成/破棄 200 回、再利用スロットが無音から立ち上がる | OK（再利用時の準備完了まで約 0.6 秒） |
-| — | パラメータ、enum 名、状態保存（FREEZE は保存しない）、ui_hierarchy | OK |
-| — | AddressSanitizer + UBSan、標準グリッド UI（実機のページエンジン）、ARM64 ABI、ライセンス検査 | OK |
+| 1 | Partitioned convolution = direct convolution (IR 3000 / 4096 / 4097 / 40000 / 96256 samples), impulse → the IR itself | Error −129 to −134 dB, impulse error 4e-7 |
+| 2 | Host block size 1 / 37 / 64 / 300 / random 1–300 vs 128 | Output difference 0 (bit-identical) |
+| 3 | Largest sample step and 20 ms level change while switching SPACE 6 times + SIZE + DECAY | Steps within 1.33× of steady state, level change +0.1 dB |
+| 4 | DECAY 1 / 2 / 5 / 10 / 20 / 30 s → measured RT60 (below 400 Hz, EDC −10 to −40 dB) | 1.17 / 1.10 / 1.01 / 0.99 / 0.99 / 0.98× |
+| 5 | DEPTH 0 → 100 % (6 presets): pre-delay, early/late ratio, spectral centroid, loudness | Table below |
+| 6 | FREEZE for 5 minutes (input keeps playing) → release | No rise, within −1.7 dB over 5 minutes, DC 4.5e-6, no clicks, decays after release |
+| 7 | Min/max of every continuous parameter, 64 combinations × full-scale input × FREEZE on/off | NaN/Inf 0, peak ≤ 1.0 |
+| 8 | Left-only / mono input → decorrelated reverb on both sides, dry stays on its side | R/L −3.9 dB, correlation 0.02 / 0.05 |
+| 9 | MIX 0 / 50 / 100 % | 0 % is a bit-identical bypass, 50 % dry −3 dB, 100 % no dry |
+| — | Sleep at MIX 0: processing stops (49.5 → 1.5 µs/block on a desktop), still bit-identical from 40 % → 0, no click on raising it again, reverb present after 50–100 ms, no sleep during FREEZE | OK |
+| 10 | 8 instances + a 9th refused, create/destroy 200 times, a reused slot starts from silence | OK (about 0.6 s until a reused slot is ready) |
+| — | Parameters, enum names, state save (FREEZE is not saved), ui_hierarchy | OK |
+| — | AddressSanitizer + UBSan, standard grid UI (the device's page engine), ARM64 ABI, licence checks | OK |
 
-DEPTH 0 → 100 %（MIX 100 % のインパルス応答と、MIX 40 % のピンクノイズのラウドネス）:
+DEPTH 0 → 100 % (impulse response at MIX 100 %, loudness of pink noise at MIX 40 %):
 
-| SPACE | 立ち上がり | 初期反射/後期 | スペクトル重心 | ラウドネス |
+| SPACE | Onset | Early/late | Spectral centroid | Loudness |
 |---|---|---|---|---|
 | CATHEDRAL | 40 → 246 ms | −10.0 → −20.6 dB | 4855 → 1211 Hz | +0.6 → −1.1 dB |
 | CAVERN | 19 → 226 ms | −5.6 → −16.5 dB | 3051 → 966 Hz | +0.2 → −2.2 dB |
@@ -247,30 +281,34 @@ DEPTH 0 → 100 %（MIX 100 % のインパルス応答と、MIX 40 % のピン�
 | ABYSS | 74 → 286 ms | −19.9 → −30.0 dB | 984 → 564 Hz | +0.5 → −0.4 dB |
 | VOID | 31 → 244 ms | −18.6 → −27.3 dB | 6376 → 1526 Hz | +0.8 → −2.0 dB |
 
-## Move 実機での計測
+## Measured on Move
 
-2026-10-23、host 1.7.3、`build/bench-device-arm64` を Move 上で通常優先度・`taskset 0x7` で実行
-（Move の CPU は Cortex-A72、1 ブロック 128 サンプル = 2902 µs）。
+2026-10-23, host 1.7.3, `build/bench-device-arm64` run on Move at normal priority with
+`taskset 0x7` (Move's CPU is a Cortex-A72; one 128-sample block = 2902 µs).
 
-| 設定 | 平均 | 最悪 |
+| Setting | Mean | Worst |
 |---|---|---|
-| 初期値 | 478 µs（16.5 %） | 1756 µs |
-| 最大（ABYSS、SIZE 4、DECAY 30） | 484 µs（16.7 %） | 2245 µs |
-| SPACE を 1 秒ごとに切り替え（IR 生成 + クロスフェード） | 569 µs（19.6 %） | 1747 µs |
-| FREEZE | 451 µs（15.6 %） | 7880 µs |
-| MIX 0（休止、0.1.1） | 6 µs（0.2 %） | 380 µs |
+| Defaults | 478 µs (16.5 %) | 1756 µs |
+| Maximum (ABYSS, SIZE 4, DECAY 30) | 484 µs (16.7 %) | 2245 µs |
+| SPACE switched every second (IR generation + crossfade) | 569 µs (19.6 %) | 1747 µs |
+| FREEZE | 451 µs (15.6 %) | 7880 µs |
+| MIX 0 (sleeping, 0.1.1) | 6 µs (0.2 %) | 380 µs |
 
-内訳（平均）：畳み込み 207 µs、FDN 177 µs。4096 点 FFT 1 回 138 µs。
-最悪値は通常優先度のプロセスとして測ったもので、他プロセスによる横取りを含みます
-（7880 µs は明らかに横取り）。SPI スレッド内の実際の値は Schwung の CPU ページで確認してください。
+Breakdown (mean): convolution 207 µs, FDN 177 µs. One 4096-point FFT is 138 µs.
+The worst figures were measured as a normal-priority process and include preemption by
+other processes (7880 µs is clearly preemption). For the real figures inside the SPI
+thread, check Schwung's CPU page.
 
-## 既知の制約
+## Known limitations
 
-- IR はすべて合成です。実測（録音）IR の読み込み機能はありません
-- SPACE / SIZE / DECAY の変更は、新しい IR の生成とクロスフェードのため約 0.5 秒遅れて反映されます
-- SIZE を回している間は FDN のディレイ長が滑らかに追従するため、わずかなピッチの揺れが出ます
-- FREEZE は完全な無限持続ではありません（5 分で約 −0.6 dB、安定性優先）。FREEZE の状態は保存しません
-  （セットを開き直したときに空の残響で凍結されているのを避けるため）
-- プリセット間の音量はピンクノイズで揃えています。キックのような低域主体の素材では、低域を削っている
-  VOID が小さめに、強い初期反射を持つ HANGAR が大きめに聞こえます
-- IR の最大長は 2.0 秒です（それ以降は FDN が担当）
+- All IRs are synthetic. There is no way to load measured (recorded) IRs
+- Changes to SPACE / SIZE / DECAY take effect about 0.5 s later, because of IR
+  generation and the crossfade
+- While SIZE is turning, the FDN delay lengths follow smoothly, causing a slight pitch
+  wobble
+- FREEZE is not a perfectly infinite hold (about −0.6 dB over 5 minutes; stability
+  first). The FREEZE state is not saved (to avoid reopening a set frozen on an empty
+  reverb)
+- Preset levels are matched with pink noise. On low-heavy material such as kicks, VOID
+  (which cuts the lows) sounds quieter and HANGAR (with strong early reflections) louder
+- The longest IR is 2.0 s (the FDN takes over after that)

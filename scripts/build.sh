@@ -54,7 +54,7 @@ fi
 cp "$MODULE/module.json" "$OUT/"
 if [[ "$TARGET" == arm64 ]]; then
   python3 "$MODULE/scripts/check_abi.py" "$OUT/$ID.so"
-  for f in help.json README.md LICENSE THIRD_PARTY_LICENSES.md; do
+  for f in help.json README.md README.ja.md LICENSE THIRD_PARTY_LICENSES.md; do
     cp "$MODULE/$f" "$OUT/"
   done
   tar -czf "$MODULE/dist/$ID-module.tar.gz" -C "$MODULE/dist" "$ID"
